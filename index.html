@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kaizen">
+  <meta name="theme-color" content="#070A14">
+  <title>Kaizen Workout</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- EKRAN GŁÓWNY -->
+  <section id="home" class="screen active" aria-label="Treningi">
+    <header class="home-head">
+      <h1 class="brand">Kaizen <span>Workout</span></h1>
+      <div class="home-tools">
+        <button class="chip" id="tgl-voice" aria-pressed="true">Lektor</button>
+        <button class="chip" id="tgl-sounds" aria-pressed="true">Dźwięki</button>
+        <button class="chip" id="tgl-commands" aria-pressed="true">Komendy głosowe</button>
+      </div>
+    </header>
+    <div class="streak" id="streak"></div>
+    <div class="loadbar" id="load-home" hidden>
+      <span class="spinner" aria-hidden="true"></span>
+      <span id="load-home-text">Pobieram filmy…</span>
+      <div class="bar"><i id="load-home-bar"></i></div>
+    </div>
+    <p class="warn" id="voice-warn" hidden>Brak polskiego głosu w iPadzie. Ustawienia → Dostępność → Mowa czytana → Głosy → Polski: pobierz głos, wtedy lektor działa bez internetu.</p>
+    <p class="note" id="voice-model"></p>
+    <div class="tiles" id="tiles"></div>
+    <div class="films-off" id="films-off" hidden></div>
+    <p class="note" id="sync-note"></p>
+    <div class="sync-form" id="pass-form" hidden>
+      <input id="inp-pass" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Hasło do treningów (z kreatora, np. abcd-efgh-…)">
+      <button class="chip" id="btn-pass-save">Zapisz hasło</button>
+    </div>
+    <div class="sync-form" id="sync-form" hidden>
+      <input id="inp-token" type="password" autocomplete="off" placeholder="Klucz GitHub do wyników (github_pat_…)">
+      <button class="chip" id="btn-token-save">Zapisz klucz</button>
+    </div>
+  </section>
+
+  <!-- EKRAN ĆWICZENIA -->
+  <section id="workout" class="screen" aria-label="Trening">
+    <div class="frame" id="frame" aria-hidden="true"></div>
+    <div class="wo">
+      <div class="wo-left">
+        <div class="wo-top">
+          <span class="phase" id="phase"></span>
+          <button class="chip" id="btn-skip-phase" hidden>Pomiń</button>
+          <span class="spacer"></span>
+          <span class="heard" id="heard" hidden></span>
+          <span class="mic" id="mic" hidden title="Komendy głosowe"><i></i><b id="mic-text">słucham</b></span>
+          <button class="chip ghost" id="btn-end">Koniec</button>
+        </div>
+        <div class="media" id="media">
+          <div class="media-label" id="media-label" hidden>Następne</div>
+          <video id="video" muted loop playsinline autoplay hidden></video>
+          <div class="placeholder" id="placeholder"><span id="ph-letter"></span><small>film dojdzie z kreatora</small></div>
+        </div>
+        <h2 class="ex-name" id="ex-name"></h2>
+      </div>
+
+      <div class="wo-right">
+        <div class="counter-wrap">
+          <div class="counter" id="counter">0</div>
+          <div class="counter-label" id="counter-label"></div>
+        </div>
+        <dl class="info">
+          <div><dt id="lbl-set">Seria</dt><dd id="i-set"></dd></div>
+          <div><dt>Poziom</dt><dd id="i-level"></dd></div>
+          <div><dt>Ostatnio</dt><dd id="i-last"></dd></div>
+          <div><dt>Następne</dt><dd id="i-next"></dd></div>
+        </dl>
+        <div class="progress">
+          <div class="bar"><i id="bar"></i></div>
+          <span id="left-total"></span>
+        </div>
+        <div class="controls">
+          <button class="ctl" id="btn-back" aria-label="Wróć">‹ Wróć</button>
+          <button class="ctl" id="btn-pause">Pauza</button>
+          <button class="ctl" id="btn-more">+10 s</button>
+          <button class="ctl" id="btn-next" aria-label="Dalej">Dalej ›</button>
+        </div>
+        <button class="big" id="btn-main">START</button>
+      </div>
+    </div>
+
+    <!-- ładowanie filmów treningu -->
+    <div class="overlay" id="ov-load" hidden>
+      <div class="sheet">
+        <span class="spinner big-spin" aria-hidden="true"></span>
+        <h2>Ładuję filmy treningu</h2>
+        <p class="muted" id="load-text"></p>
+        <div class="bar thin"><i id="load-bar"></i></div>
+        <button class="chip" id="btn-load-skip">Zacznij bez czekania</button>
+      </div>
+    </div>
+
+    <!-- poprawka powtórzeń -->
+    <div class="overlay" id="ov-correct" hidden>
+      <div class="sheet">
+        <p>Ile zrobiłeś?</p>
+        <div class="adjust">
+          <button class="round" id="btn-minus" aria-label="Mniej">−</button>
+          <span class="adjust-n" id="correct-n">12</span>
+          <button class="round" id="btn-plus" aria-label="Więcej">+</button>
+        </div>
+        <div class="bar thin"><i id="correct-bar"></i></div>
+        <button class="chip" id="btn-correct-ok">OK</button>
+      </div>
+    </div>
+
+    <!-- potwierdzenie końca -->
+    <div class="overlay" id="ov-end" hidden>
+      <div class="sheet">
+        <p>Na pewno zakończyć trening?</p>
+        <small class="muted">Powiedz „tak” albo „nie”</small>
+        <div class="row2">
+          <button class="big danger" id="btn-end-yes">Tak, koniec</button>
+          <button class="big" id="btn-end-no">Nie, ćwiczę</button>
+        </div>
+        <div class="bar thin"><i id="end-bar"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OCENA ZMĘCZENIA -->
+  <section id="rpe" class="screen" aria-label="Ocena zmęczenia">
+    <h2>Jak ciężko było?</h2>
+    <p class="muted">1 – lekko, 10 – na maksa</p>
+    <div class="rpe-grid" id="rpe-grid"></div>
+    <button class="big" id="btn-rpe-save" disabled>Zapisz</button>
+  </section>
+
+  <!-- PODSUMOWANIE -->
+  <section id="summary" class="screen" aria-label="Podsumowanie">
+    <h2 id="sum-title">Dobra robota</h2>
+    <div class="sum-stats" id="sum-stats"></div>
+    <ul class="sum-list" id="sum-list"></ul>
+    <button class="big" id="btn-home">Wróć do treningów</button>
+  </section>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
